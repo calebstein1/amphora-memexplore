@@ -39,7 +39,7 @@ main(void) {
 
 	fd = shm_open("/amphora_heap", O_RDONLY, 0666);
 	if (fd == -1) {
-		fputs("Failed to connect to Amphora instance\n", stderr);
+		(void)fputs("Failed to connect to Amphora instance\n", stderr);
 		return -1;
 	}
 	amphora_heap = mmap(NULL, sizeof(AmphoraMemBlock) * AMPHORA_NUM_MEM_BLOCKS, PROT_READ, MAP_SHARED, fd, 0);

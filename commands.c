@@ -45,7 +45,7 @@ dump_block(const char *args) {
 }
 
 void
-peek_addr(const char *args) {
+peek_addr(char *args) {
 	int block, idx;
 
 	if (args == NULL) {
