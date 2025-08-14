@@ -1,19 +1,60 @@
+#if defined(__APPLE__) || defined(__linux__)
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#elif defined(_WIN32)
+#include <memoryapi.h>
+/*
+ * TODO: Windows support
+ */
+#else
+#error "unsupported system"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#include "commands.h"
+#include "heap_handler.h"
+#include "amphora_mem.h"
 
-extern AmphoraMemBlock *amphora_heap;
-extern struct amphora_mem_block_metadata_t *heap_metadata;
-extern const char *category_names[];
-extern const char *cmd_list[];
+static AmphoraMemBlock *amphora_heap;
+static struct amphora_mem_block_metadata_t *heap_metadata;
+const char *category_names[] = {
+#define X(cat) #cat,
+	AMPHORA_MEM_CATEGORIES
+#undef X
+};
+
 
 #define PRINTABLE_CHAR(c) ((c >= 0x20 && c <= 0x7E) ? c : '.')
 
+int
+open_heap(void) {
+	int fd;
+
+	fd = shm_open("/amphora_heap", O_RDONLY, 0666);
+	if (fd == -1) {
+		(void)fputs("Failed to connect to Amphora instance\n", stderr);
+		return -1;
+	}
+	amphora_heap = mmap(NULL, sizeof(AmphoraMemBlock) * AMPHORA_NUM_MEM_BLOCKS, PROT_READ, MAP_SHARED, fd, 0);
+	(void)close(fd);
+	if (amphora_heap == NULL) return -1;
+
+	heap_metadata = (struct amphora_mem_block_metadata_t *)&amphora_heap[AMPHORA_NUM_MEM_BLOCKS - 1][8];
+
+	return 0;
+}
+
 void
-dump_block(int blk) {
-	int i;
+close_heap(void) {
+	/* Can safely be ignored since this code path will never be reached with an invalid address, and we're leaving anyway */
+	(void)munmap(amphora_heap, sizeof(AmphoraMemBlock) * AMPHORA_NUM_MEM_BLOCKS);
+}
+
+void
+dump_block(unsigned int blk) {
+	unsigned int i;
 
 	if (blk >= AMPHORA_NUM_MEM_BLOCKS) {
 		(void)fprintf(stderr, "Invalid memory block address: %d\n", blk);
@@ -61,7 +102,7 @@ dump_block(int blk) {
 }
 
 void
-peek_addr(int blk, int idx) {
+peek_addr(unsigned int blk, unsigned int idx) {
 	if (blk >= AMPHORA_NUM_MEM_BLOCKS) {
 		(void)fprintf(stderr, "Invalid memory block address: %d\n", blk);
 		return;
