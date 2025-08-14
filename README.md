@@ -8,14 +8,6 @@ It also requires the latest development branch of Amphora which includes its cus
 
 ## Usage
 
-When launched, the program will automatically connect to a running Amphora game.
-This requires that an Amphora game be running and that it did not have to fall back to a private anonymous heap for whatever reason.
-
-Once connected, the following commands are supported:
-
-- `dump [block]`: Dumps the entire contents of the specified memory block
-- `peek [block] [index]`: Displays the value of the byte stored at the specified block, index pair
-- `list_categories`: Shows a list of all memory blocks and their associated categories
-- `clear`: Clears the screen
-- `exit`: Quits the program
-
+- `memexplore -d <block>`: dumps the entire contents of a memory block to the console
+- `memexplore -p <block,index>`: shows the value of the byte stored at block, index
+- `memexplore -l`: list all blocks with their associated memory caategories
