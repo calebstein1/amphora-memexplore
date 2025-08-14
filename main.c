@@ -30,12 +30,13 @@ const char *cmd_list[] = {
 };
 
 int
-main(void) {
+main(int argc, char *argv[]) {
 	int fd;
 	char in_buffer[1024];
 	char *cmd;
 	char *args;
 	MemExploreCommand cmd_id;
+	int c;
 
 	fd = shm_open("/amphora_heap", O_RDONLY, 0666);
 	if (fd == -1) {
@@ -47,36 +48,23 @@ main(void) {
 	if (amphora_heap == NULL) return -1;
 
 	heap_metadata = (struct amphora_mem_block_metadata_t *)&amphora_heap[AMPHORA_NUM_MEM_BLOCKS - 1][8];
-
-	(void)puts("Connected to Amphora instance!");
-	while (1) {
-		(void)printf("> ");
-		(void)fgets(in_buffer, sizeof(in_buffer), stdin);
-		if (strlen(in_buffer) == 1) continue;
-		cmd = strtok(in_buffer, " \n");
-		args = strtok(NULL, "\n");
-		cmd_id = parse_cmd(cmd);
-		switch (cmd_id) {
-			case CMD_DUMP:
-				dump_block(args);
+	while ((c = getopt(argc, argv, "d:p:l")) != -1) {
+		switch (c) {
+			case 'd':
+				dump_block(atoi(optarg));
 				break;
-			case CMD_PEEK:
-				peek_addr(args);
+			case 'p':
+				peek_addr(atoi(optarg), atoi(optarg + 1));
 				break;
-			case CMD_LIST:
+			case 'l':
 				list_categories();
 				break;
-			case CMD_CLS:
-				fputs("\033[2J\033[H", stdout);
-				break;
-			case CMD_EXIT:
-				goto leave;
+			case '?':
 			default:
-				(void)printf("Unknown command: %s\n", cmd);
+				fputs("Usage: memexplore [-d <block>] [-p <block> <index>] [-l]\n", stderr);
 		}
 	}
 
-	leave:
 	(void)munmap(amphora_heap, sizeof(AmphoraMemBlock) * AMPHORA_NUM_MEM_BLOCKS);
 	return 0;
 }
