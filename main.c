@@ -14,13 +14,22 @@
 
 #include "heap_handler.h"
 
+static void
+print_help(FILE *out) {
+	/* It would be strange if this happened ¯\_(ツ)_/¯ */
+	if (out != stdout && out != stderr) out = stdout;
+
+	(void)fputs("Usage: memexplore [-d <block>] [-p <block>,<index>] [-l] [-h]\n", out);
+}
+
 int
 main(int argc, char *argv[]) {
-	int c, n;
+	int c;
+	unsigned int n;
 	char *p;
 
 	if (open_heap() != 0) return 1;
-	while ((c = getopt(argc, argv, "d:p:l")) != -1) {
+	while ((c = getopt(argc, argv, "d:p:lh")) != -1) {
 		switch (c) {
 			case 'd':
 				dump_block((int)strtol(optarg, NULL, 0));
@@ -31,7 +40,7 @@ main(int argc, char *argv[]) {
 				n = (int)(p - optarg);
 				if (n <= 0 || n >= strlen(optarg) - 1) {
 					comma_fail:
-					(void)fputs("Invalid argument for -p, requires -p <block,index>\n", stderr);
+					(void)fputs("Invalid argument for -p, requires -p <block>,<index>\n", stderr);
 					close_heap();
 
 					return 1;
@@ -41,9 +50,15 @@ main(int argc, char *argv[]) {
 			case 'l':
 				list_categories();
 				break;
+			case 'h':
+				print_help(stdout);
+				break;
 			case '?':
 			default:
-				(void)fputs("Usage: memexplore [-d <block>] [-p <block,index>] [-l]\n", stderr);
+				print_help(stderr);
+				close_heap();
+
+				return 1;
 		}
 	}
 	close_heap();
