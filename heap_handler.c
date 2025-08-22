@@ -1,3 +1,4 @@
+#include <string.h>
 #if defined(__APPLE__) || defined(__linux__)
 #include <fcntl.h>
 #include <unistd.h>
@@ -14,8 +15,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "heap_handler.h"
 #include "amphora_mem.h"
+#include "colors.h"
+#include "heap_handler.h"
 
 static AmphoraMemBlock *amphora_heap;
 static struct amphora_mem_block_metadata_t *heap_metadata;
@@ -60,15 +62,24 @@ reset_heap(void) {
 void
 dump_block(unsigned int blk) {
 	unsigned int i;
+	char s[3][8];
+	struct amphora_mem_allocation_header_t *h1, *h2;
 
 	if (blk >= AMPHORA_NUM_MEM_BLOCKS) {
 		(void)fprintf(stderr, "Invalid memory block address: %d\n", blk);
 		return;
 	}
-	(void)printf("Memory block %d:\nCategory: %s\nAllocations: %d", blk, category_names[heap_metadata[blk].category], heap_metadata[blk].allocations);
+	(void)printf("Memory block %d:\nCategory: %s\nAllocations: %d\nCorrupted: %s", blk, category_names[heap_metadata[blk].category], heap_metadata[blk].allocations, heap_metadata[blk].corrupted ? "yes" : "no");
 	for (i = 0; i < sizeof(AmphoraMemBlock); i += 16) {
-		(void)printf("\n%04X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\t%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
+		h1 = (struct amphora_mem_allocation_header_t *)&amphora_heap[blk][i];
+		h2 = (struct amphora_mem_allocation_header_t *)&amphora_heap[blk][i + 8];
+		strcpy(s[0], h1->magic == MAGIC ? h1->free ? PURPLE : GREEN : RESET);
+		strcpy(s[1], h2->magic == MAGIC ? h2->free ? PURPLE : GREEN : RESET);
+		strcpy(s[2], RESET);
+		if (h1->magic != MAGIC && h2->magic != MAGIC) memset(s, 0, sizeof(s));
+		(void)printf("\n%04X: %s%02X %02X %02X %02X %02X %02X %02X %02X %s%02X %02X %02X %02X %02X %02X %02X %02X%s\t%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c",
 			i,
+			s[0],
 			amphora_heap[blk][i],
 			amphora_heap[blk][i + 1],
 			amphora_heap[blk][i + 2],
@@ -77,6 +88,7 @@ dump_block(unsigned int blk) {
 			amphora_heap[blk][i + 5],
 			amphora_heap[blk][i + 6],
 			amphora_heap[blk][i + 7],
+			s[1],
 			amphora_heap[blk][i + 8],
 			amphora_heap[blk][i + 9],
 			amphora_heap[blk][i + 10],
@@ -85,6 +97,7 @@ dump_block(unsigned int blk) {
 			amphora_heap[blk][i + 13],
 			amphora_heap[blk][i + 14],
 			amphora_heap[blk][i + 15],
+			s[2],
 			PRINTABLE_CHAR(amphora_heap[blk][i]),
 			PRINTABLE_CHAR(amphora_heap[blk][i + 1]),
 			PRINTABLE_CHAR(amphora_heap[blk][i + 2]),
@@ -121,9 +134,10 @@ peek_addr(unsigned int blk, unsigned int idx) {
 
 void
 list_categories(void) {
-	int i;
+	int i, corrupt;
 
 	for (i = 0; i < AMPHORA_NUM_MEM_BLOCKS; i++) {
-		(void)printf("%3d: %s\n", i, category_names[heap_metadata[i].category]);
+		corrupt = heap_metadata[i].corrupted;
+		(void)printf("%3d:\t%s\t%s%s%s\n", i, category_names[heap_metadata[i].category], corrupt ? RED : GREEN , corrupt ? "CORRUPTED" : "OK", RESET);
 	}
 }

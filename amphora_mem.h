@@ -1,6 +1,8 @@
 #ifndef AMPHORA_MEMEXPLORE_H
 #define AMPHORA_MEMEXPLORE_H
 
+#define MAGIC 0xEFBE
+
 #define AMPHORA_MEM_CATEGORIES	\
 	X(MEM_UNASSIGNED)	\
 	X(MEM_RENDERABLE)	\
@@ -28,6 +30,16 @@ struct amphora_mem_block_metadata_t {
 	unsigned short addr;
 	unsigned short allocations;
 	AmphoraMemBlockCategory category;
+	unsigned char corrupted : 1;
+};
+
+struct amphora_mem_allocation_header_t {
+	unsigned short magic;
+	unsigned char scope;
+	unsigned char free : 1;
+	unsigned char large : 1;
+	unsigned short off_b;
+	unsigned short off_f;
 };
 
 #endif /* AMPHORA_MEMEXPLORE_H */
