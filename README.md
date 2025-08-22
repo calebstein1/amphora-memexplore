@@ -9,5 +9,7 @@ It also requires the latest development branch of Amphora which includes its cus
 ## Usage
 
 - `memxplore -d <block>`: dumps the entire contents of a memory block to the console
-- `memxplore -p <block,index>`: shows the value of the byte stored at block, index
+- `memxplore -p <block>,<index>`: shows the value of the byte stored at block, index
 - `memxplore -l`: list all blocks with their associated memory caategories
+- `memxplore -r`: reset a stale heap if Amphora crashed before cleanup
+
