@@ -19,7 +19,7 @@ print_help(FILE *out) {
 	/* It would be strange if this happened ¯\_(ツ)_/¯ */
 	if (out != stdout && out != stderr) out = stdout;
 
-	(void)fputs("Usage: memexplore [-d <block>] [-p <block>,<index>] [-l] [-h]\n", out);
+	(void)fputs("Usage: memexplore [-d <block>] [-p <block>,<index>] [-l] [-r] [-h]\n", out);
 }
 
 int
@@ -29,7 +29,7 @@ main(int argc, char *argv[]) {
 	char *p;
 
 	if (open_heap() != 0) return 1;
-	while ((c = getopt(argc, argv, "d:p:lh")) != -1) {
+	while ((c = getopt(argc, argv, "d:p:lrh")) != -1) {
 		switch (c) {
 			case 'd':
 				dump_block((int)strtol(optarg, NULL, 0));
@@ -49,6 +49,9 @@ main(int argc, char *argv[]) {
 				break;
 			case 'l':
 				list_categories();
+				break;
+			case 'r':
+				reset_heap();
 				break;
 			case 'h':
 				print_help(stdout);

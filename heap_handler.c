@@ -53,6 +53,11 @@ close_heap(void) {
 }
 
 void
+reset_heap(void) {
+	(void)shm_unlink("/amphora_heap");
+}
+
+void
 dump_block(unsigned int blk) {
 	unsigned int i;
 
