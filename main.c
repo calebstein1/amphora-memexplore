@@ -22,11 +22,19 @@ print_help(FILE *out) {
 	(void)fputs("Usage: memexplore [-d <block>] [-p <block>,<index>] [-l] [-r] [-h]\n", out);
 }
 
+static int
+validate_blk_idx(const char *s) {
+	char *p;
+
+	p = strchr(s, ',');
+	if (p == NULL) return 0;
+
+	return (int)(p - s) > 0 && (int)(p - s) < (int)strlen(s) - 1;
+}
+
 int
 main(int argc, char *argv[]) {
 	int c;
-	unsigned int n;
-	char *p;
 
 	if (open_heap() != 0) return 1;
 	while ((c = getopt(argc, argv, "d:p:lrh")) != -1) {
@@ -35,11 +43,7 @@ main(int argc, char *argv[]) {
 				dump_block((int)strtol(optarg, NULL, 0));
 				break;
 			case 'p':
-				p = strchr(optarg, ',');
-				if (p == NULL) goto comma_fail;
-				n = (int)(p - optarg);
-				if (n <= 0 || n >= strlen(optarg) - 1) {
-					comma_fail:
+				if (validate_blk_idx(optarg) == 0) {
 					(void)fputs("Invalid argument for -p, requires -p <block>,<index>\n", stderr);
 					close_heap();
 
