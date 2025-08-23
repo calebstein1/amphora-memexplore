@@ -69,7 +69,13 @@ dump_block(unsigned int blk) {
 		(void)fprintf(stderr, "Invalid memory block address: %d\n", blk);
 		return;
 	}
-	(void)printf("Memory block %d:\nCategory: %s\nAllocations: %d\nCorrupted: %s", blk, category_names[heap_metadata[blk].category], heap_metadata[blk].allocations, heap_metadata[blk].corrupted ? "yes" : "no");
+	(void)printf("Memory block %d:\nCategory: %s\nAllocations: %d\nLargest free: %d\nCorrupted: %s",
+		blk,
+		category_names[heap_metadata[blk].category],
+		heap_metadata[blk].allocations,
+		heap_metadata[blk].largest_free,
+		heap_metadata[blk].corrupted ? "YES" : "NO"
+	);
 	for (i = 0; i < sizeof(AmphoraMemBlock); i += 16) {
 		h1 = (struct amphora_mem_allocation_header_t *)&amphora_heap[blk][i];
 		h2 = (struct amphora_mem_allocation_header_t *)&amphora_heap[blk][i + 8];

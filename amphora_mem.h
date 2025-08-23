@@ -27,10 +27,11 @@ typedef enum {
 } AmphoraMemBlockCategory;
 
 struct amphora_mem_block_metadata_t {
-	unsigned short addr;
+	unsigned short largest_free;
 	unsigned short allocations;
 	AmphoraMemBlockCategory category;
 	unsigned char corrupted : 1;
+	unsigned char recovery_count : 3;
 };
 
 struct amphora_mem_allocation_header_t {
